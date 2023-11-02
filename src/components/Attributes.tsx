@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useStatsContext } from "../context/StatsContext";
+
 import { useEquipmentContext } from "../context/EquipmentContext";
 import { useAttributesContext } from "../context/AttributesContext";
 
 const Attributes: React.FC = () => {
-const {damage, defense,hitpoints,endurancepoints,actionpoints,disease,hunger,temp,sleep,thirst,reputation,alignment} = useAttributesContext();
+const {defense,hitpoints,endurancepoints,actionpoints,disease,hunger,temp,sleep,thirst,reputation} = useAttributesContext();
 //const { strength, dexterity, constitution, wisdom, intelligence, charisma } = useStatsContext();
-const { Helmet, Armor, Shield, Weapon, Bracers,  Boots,Ring, Amulet} = useEquipmentContext();
+const { Weapon} = useEquipmentContext();
 
 const [CharacterLowDamage, setCharacterLowDamage] = useState<any>(0);
 const [CharacterHighDamage, setCharacterHighDamage] = useState<any>(0);
-
-const [Damage, setDamage] = useState<any>(0);
 
 //HP -= damage>defense ? (damage) : (damage/defense)
 

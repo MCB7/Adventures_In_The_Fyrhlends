@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import * as THREE from 'three';
 
 const useGridDistance = (camera: THREE.Camera) => {

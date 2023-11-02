@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 
 const Enemy: React.FC<{ HP: any, EP: any, AP: any }> = ({ HP, EP, AP }) => {
   const [Health, setHealth] = useState<any>();
