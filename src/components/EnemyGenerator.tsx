@@ -17,12 +17,12 @@ const GenerateEnemy: React.FC = () => {
     const rolls = [roll(), roll(), roll(), roll(), roll(), roll()];
     const sum = rolls.reduce((acc, curr) => acc + curr, 0);
     const stats : any = {
-      strength: 0,
-      dexterity: 0,
-      constitution: 0,
-      wisdom: 0,
-      intelligence: 0,
-      charisma: 0,
+      enemyStrength: 0,
+      enemyDexterity: 0,
+      enemyConstitution: 0,
+      enemyWisdom: 0,
+      enemyIntelligence: 0,
+      enemyCharisma: 0,
     };
     for (let i = 0; i < sum; i++) {
       const statKeys = Object.keys(stats);

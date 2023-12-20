@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import { useStatsContext } from "../context/StatsContext";
 import { useAttributesContext } from "../context/AttributesContext";
 import { useEquipmentContext } from "../context/EquipmentContext";
@@ -11,6 +11,7 @@ import { useHurtAnimationContext } from "../context/HurtAnimationContext";
 import { useEnemyHitAnimationContext } from "../context/EnemyHitAnimationContext";
 import { useEnemyBlockAnimationContext } from "../context/EnemyBlockAnimationContext";
 import { useEnemyHurtAnimationContext } from "../context/EnemyHurtContext";
+import { useEnemyStatsContext } from "../context/EnemyStatsContext";
 
 type BattleProps = {
   onClose: () => void;
@@ -18,6 +19,7 @@ type BattleProps = {
 
 const Battle: React.FC<BattleProps> = (props) => {
   const { strength, dexterity } = useStatsContext();
+  const { enemyStrength, enemyDexterity } = useEnemyStatsContext();
   const { hitpoints, endurancepoints, actionpoints } = useAttributesContext();
   const { enemy } = useEnemyContext();
   const { Weapon } = useEquipmentContext();
@@ -53,77 +55,81 @@ const Battle: React.FC<BattleProps> = (props) => {
       setCharacterHighDamage(parsedWeapon.highDamage);
     }
   }, [Weapon, CharacterLowDamage, CharacterHighDamage]);
+  const DamageRoll = useMemo(() => {
+    return () => {
+      const strengthBonus = strength > 16 ? strength - 16 : 0;
+      const strengthPenalty = strength < 7 ? 7 - strength : 0;
+      let randomDamage =
+        Math.floor(
+          Math.random() * (CharacterHighDamage - CharacterLowDamage + 2)
+        ) / CharacterLowDamage;
+      randomDamage += strengthBonus;
+      randomDamage -= strengthPenalty;
+      randomDamage = Math.max(1, randomDamage);
+      return randomDamage;
+    };
+   }, [strength, CharacterLowDamage, CharacterHighDamage]);
 
-  const DamageRoll = () => {
-    const strengthBonus = strength > 16 ? strength - 16 : 0;
-    const strengthPenalty = strength < 7 ? 7 - strength : 0;
-    let randomDamage =
-      Math.floor(
-        Math.random() * (CharacterHighDamage - CharacterLowDamage + 2)
-      ) / CharacterLowDamage;
-    // console.log("initial Damage:", randomDamage);
-    randomDamage += strengthBonus;
-    // console.log("Strength Bonus:", strengthBonus);
-    randomDamage -= strengthPenalty;
-    // console.log("Strength Penalty:", strengthPenalty);
-    randomDamage = Math.max(1, randomDamage);
-    if (randomDamage != null) {
-      // console.log("DAMAGE:", randomDamage);
+   const [isAttacking, setIsAttacking] = useState(false);
+
+   const HitRoll = () => {
+    if (isAttacking) {
+    // If the attack animation is currently playing, do nothing
+    return;
     }
-    return randomDamage;
-  };
-
-  const HitRoll = () => {
+   
+    setIsAttacking(true);
     setIsButtonDisabled(true);
     setTimeout(() => setIsButtonDisabled(false), 700);
     setBlock(false);
     setHit(true);
-
+    
+   
     if (AP <= 0) {
-      console.log("Not enough AP to hit");
-      return;
+    console.log("Not enough AP to hit");
+    setHit(false);
+    setIsAttacking(false);
+    return;
     }
-
+   
     const dexterityBonus = dexterity > 16 ? dexterity - 16 : 0;
     const dexterityPenalty = dexterity < 7 ? 7 - dexterity : 0;
-    const apCost = dexterity > 16 ? 5 - dexterityBonus : 5;
-
+    const apCost = dexterity > 16 ? 5 * (1 - (dexterity - 16) * 0.05) : 5 + (7 - dexterity) * 0.05 * 5;
+   
+    // When the attack animation is done, set isAttacking back to false
+    setTimeout(() => setIsAttacking(false), 100);
+   
     setAP((prevAP: number) => Math.max(0, prevAP - apCost));
-
+   
     const roll =
-      Math.floor(Math.random() * 20) + 1 + dexterityBonus - dexterityPenalty;
-    // console.log(roll);
-
-    const isHit = roll > 15;
+    Math.floor(Math.random() * 20) + 1 + dexterityBonus - dexterityPenalty;
+   
+    const isHit = roll > 10;
     const isCriticalFailure = roll === 1;
     const isCriticalHit = roll === 20;
-
+   
     if (isHit || isCriticalFailure || isCriticalHit) {
-      const damageMultiplier = isCriticalHit ? 2 : 1;
-      const damage = DamageRoll() * damageMultiplier;
-
-      // console.log(
-      //   isHit ? "HIT" : isCriticalHit ? "CRITICAL HIT" : "CRITICAL FAILURE"
-      // );
-      // console.log("Damage:", damage);
-
-      if (isHit) {
-        setAP((prevAP: number) => Math.max(0, prevAP + apCost));
-        setHitCount((prevCount) => prevCount + 1);
-        setEnemyHurt(true);
-        setFlashEnemyHealth(true);
-        setTimeout(() => setFlashEnemyHealth(false), 500);
-
-        setIsButtonDisabled(true);
-        setTimeout(() => setIsButtonDisabled(false), 900);
-      }
-
-      updateEnemyState(damage);
-    } else if (roll < 15) {
-      // console.log("MISSED");
-      // Run your logic for roll below 15
+    const damageMultiplier = isCriticalHit ? 2 : 1;
+    const damage = DamageRoll() * damageMultiplier;
+   
+    if (isHit) {
+     setAP((prevAP: number) => Math.max(0, prevAP + apCost));
+     setHitCount((prevCount) => prevCount + 1);
+     setEnemyHurt(true);
+     setFlashEnemyHealth(true);
+     setTimeout(() => setFlashEnemyHealth(false), 500);
+   
+     setIsButtonDisabled(true);
+     setTimeout(() => setIsButtonDisabled(false), 900);
     }
-  };
+   
+    updateEnemyState(damage);
+    } else if (roll < 15) {
+    // Run your logic for roll below 15
+    }
+   };
+   
+  
 
   useEffect(() => {}, [isButtonDisabled]);
 
@@ -179,19 +185,24 @@ const Battle: React.FC<BattleProps> = (props) => {
     };
   }, [enemy]);
 
-  const EnemyDamageRoll = () => {
-    let randomDamage = Math.round(
-      Math.random() * (EnemyHighDamage - EnemyLowDamage) + EnemyLowDamage
-    );
-    randomDamage = Math.max(1, randomDamage);
-    if (randomDamage != null) {
-    }
-    if (!isNaN(randomDamage)) {
-    }
-    return randomDamage;
-  };
+const EnemyDamageRoll = useMemo(() => {
+ return () => {
+  const strengthBonus = enemyStrength > 16 ? enemyStrength - 16 : 0;
+  const strengthPenalty = enemyStrength < 7 ? 7 - enemyStrength : 0;
+  let randomDamage =
+    Math.floor(
+      Math.random() * (EnemyHighDamage - EnemyLowDamage + 2)
+    ) / EnemyLowDamage;
+  randomDamage += strengthBonus;
+  randomDamage -= strengthPenalty;
+  randomDamage = Math.max(1, randomDamage);
+
+  return randomDamage;
+ };
+}, [enemyStrength, EnemyLowDamage, EnemyHighDamage]);
 
   const EnemyHitRoll = () => {
+  
     if (EnemyHP === 0) {
       return;
     }
@@ -201,15 +212,16 @@ const Battle: React.FC<BattleProps> = (props) => {
       return;
     }
     setEnemyHit(true);
-
-    const apCost = 5;
+    const dexterityBonus = enemyDexterity > 16 ? enemyDexterity - 16 : 0;
+    const dexterityPenalty = enemyDexterity < 7 ? 7 - enemyDexterity : 0;
+    const apCost = enemyDexterity > 16 ? 5 * (1 - (enemyDexterity - 16) * 0.05) : 5 + (7 - enemyDexterity) * 0.05 * 5;
     setEnemyAP((prevAP: number) => Math.max(0, prevAP - apCost));
     setEnemyBlock(false);
 
-    const roll: number = Math.floor(Math.random() * 20) + 1;
-    // console.log(roll);
+    const roll =
+      Math.floor(Math.random() * 20) + 1 + dexterityBonus - dexterityPenalty;
 
-    const isHit = roll > 15 && roll !== 20 && roll !== 1;
+    const isHit = roll > 10 && roll !== 20 && roll !== 1;
     const isCriticalHit = roll === 20;
     const isCriticalFailure = roll === 1;
 
@@ -226,9 +238,8 @@ const Battle: React.FC<BattleProps> = (props) => {
       setTimeout(() => setFlashHealth(false), 500);
 
       updatePlayerState(damage);
-    } else if (roll < 15) {
-      // console.log("MISSED");
-      // Run your logic for roll below 15
+    } else if (roll < 10) {
+      setEnemyAP((prevAP: number) => Math.max(0, prevAP - apCost));
     }
   };
 
@@ -291,16 +302,33 @@ const Battle: React.FC<BattleProps> = (props) => {
     setEnemyEP(enemy.EP);
   }, [hitpoints, endurancepoints, actionpoints, enemy.HP, enemy.AP, enemy.EP]);
 
+  const [isFightSelected, setIsFightSelected] = useState(false);
+  const [Cursor, setCursor] = useState(false)
+
+  useEffect(() => {
+    if (!isFightSelected) {
+      // User has selected "FIGHT", start the delay
+      setTimeout(() => {
+        setIsFightSelected(true)
+     
+      }, 4000); // Replace 2000 with the desired delay in milliseconds
+      setTimeout(() => {
+        setCursor(true)
+     
+      }, 2000); // Replace 2000 with the desired delay in milliseconds
+    }
+  }, [isFightSelected]);
+
   useEffect(() => {
     if (EnemyHighDamage && EnemyLowDamage) {
       const interval = setInterval(() => {
-        if (EnemyAP > 0 && EnemyBlock !== true) {
+        if (EnemyAP > 0 && EnemyBlock !== true && EnemyHP > 0 && isFightSelected != false) {
           EnemyHitRoll();
         }
       }, 600);
       return () => clearInterval(interval);
     }
-  }, [EnemyHighDamage, EnemyLowDamage, EnemyAP, EnemyBlock]);
+  }, [EnemyHighDamage, EnemyLowDamage, EnemyAP, EnemyBlock, isFightSelected]);
 
   const toggleBlock = () => {
     if (EP != 0) {
@@ -336,14 +364,22 @@ const Battle: React.FC<BattleProps> = (props) => {
 
   const itemTransferStyles: React.CSSProperties = {
     position: "fixed",
+    width:"51vw",
+    height:"51vh",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    background: "white",
-    padding: "20px",
-    borderRadius: "5px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+    backgroundImage: "url('/assets/loot_BG.png')",
+    backgroundSize: '100% 100%', // or '100% 100%' for non-uniform scaling
+    backgroundRepeat:'no-repeat',
+    borderRadius: "1rem",
+    
     zIndex: "9999",
+    backgroundPosition: 'center',
+    border: "10px solid transparent",
+    
+    borderImage: "url(/assets/border_IMG.png) 20 round"
+
   };
 
   const closeButtonStyles: React.CSSProperties = {
@@ -385,6 +421,16 @@ const Battle: React.FC<BattleProps> = (props) => {
     transition: "filter 0.25s ease",
   };
 
+  const [showCanvas, setShowCanvas] = useState(false);
+  const resetLoading = () => {
+    setTimeout(() => {
+      setShowCanvas(true);
+    }, 250);
+  };
+  resetLoading();
+
+
+
   return (
     <>
       {shouldShowItemTransfer && isOpen ? (
@@ -396,10 +442,23 @@ const Battle: React.FC<BattleProps> = (props) => {
         </div>
       ) : (
         <>
+               <div style={{
+          opacity: showCanvas ? 1 : 0,
+          transition: "opacity 1.25s ease-in, filter 1s ease-in",
+          filter: showCanvas
+          ? "blur(0px)brightness(100%)"
+          : "blur(25px)brightness(-100%)",
+          display:"flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "absolute",
+          top: '15%',
+          left:'50%',
+      }}>
           <div
             id="UI"
             style={{
-              width: "50vw",
+              width: "49vw",
               height: "auto",
               display: "flex",
               justifyContent: "space-between",
@@ -407,6 +466,7 @@ const Battle: React.FC<BattleProps> = (props) => {
               position: "absolute",
               top: 0,
               margin: ".25rem",
+              
             }}
           >
             <section
@@ -529,6 +589,7 @@ const Battle: React.FC<BattleProps> = (props) => {
                 >
                   {EnemyEP}
                 </div>
+                
               )}
             </section>
 
@@ -542,7 +603,7 @@ const Battle: React.FC<BattleProps> = (props) => {
                 top: "0",
                 opacity: "0",
                 right: "0",
-                cursor: "url('/assets/cursor-attack.png'),crosshair",
+                cursor: Cursor ? "url('/assets/cursor-attack.png'),crosshair" : "url('/assets/cursor-loading.png'),crosshair",
               }}
               id="HitRollButton"
               onClick={() => {
@@ -562,12 +623,13 @@ const Battle: React.FC<BattleProps> = (props) => {
                 top: "0",
                 opacity: "0",
                 left: "0",
-                cursor: "url('/assets/cursor-block.png'),move",
+                cursor: Cursor ? "url('/assets/cursor-block.png'),crosshair" : "url('/assets/cursor-loading.png'),crosshair",
               }}
-              onClick={toggleBlock}
+              onPointerDown={toggleBlock}
             >
               Block
             </button>
+          </div>
           </div>
         </>
       )}

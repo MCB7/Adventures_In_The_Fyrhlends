@@ -35,6 +35,9 @@ import {
 import { useWindowWidth } from "../hooks/useWindowWidth";
 import Character from "./Character";
 import CreateCharacter from "./CreateCharacter";
+import CircularProgress from "./CircularProgress";
+import { useToggleTravelContext } from "../context/ToggleTravelContext";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 
 const Model = () => {
@@ -44,7 +47,7 @@ const Model = () => {
     <primitive
       object={gltf.scene}
       position={[38, -0.5, 39]}
-      scale={0.5}
+      scale={[0.5, 0.75, 0.5]}
       rotate={[1, 0, 0]}
       castShadow
       receiveShadow
@@ -59,7 +62,7 @@ const City = ({ position }: { position: any }) => {
       <primitive
         object={gltf.scene}
         position={position}
-        scale={4}
+        scale={[3, 2, 5]}
         rotate={[1, 0, 0]}
         castShadow
         receiveShadow
@@ -71,7 +74,7 @@ const City = ({ position }: { position: any }) => {
 const MultipleCities = () => {
   return (
     <>
-      <City position={[38.5, 0.25, 38.5]} />
+      <City position={[38.75, 0.15, 38.75]} />
     </>
   );
 };
@@ -126,7 +129,7 @@ const Clouds = () => {
   return (
     <group>
       {clouds.current.map((cloud, index) => (
-        <primitive key={index} object={cloud} />
+        <primitive key={`cloud-${index}`} object={cloud} />
       ))}
     </group>
   );
@@ -202,9 +205,16 @@ const Bird = ({ position }: { position: any }) => {
 const Tree = React.memo((props: any) => {
   // Load the sprite texture
   const spriteMap = useLoader(THREE.TextureLoader, "/assets/Forest_Tree.png");
+  const greenShades = ["#4d7945", "#456b3e", "#486f3f", "#476f3e", "#446b3c"];
+  // Generate a random index
+  const randomIndex = Math.floor(Math.random() * greenShades.length);
+
+  // Select a random color from the greenShades array
+  const color = greenShades[randomIndex];
+
   const material = useMemo(() => {
-    return new THREE.SpriteMaterial({ map: spriteMap, color: "#627c2a" });
-  }, [spriteMap]);
+    return new THREE.SpriteMaterial({ map: spriteMap, color: color });
+  }, [spriteMap, color]);
 
   // Create sprite
   const sprite = useMemo(() => {
@@ -264,10 +274,16 @@ const Fern = (props: any) => {
   );
 
   const spriteMap = spriteMaps[randomIndex];
-  const material = useMemo(
-    () => new THREE.SpriteMaterial({ map: spriteMap, color: "#627c2a" }),
-    [spriteMap]
-  );
+  const greenShades = ["#4d7945", "#456b3e", "#486f3f", "#476f3e", "#446b3c"];
+  // Generate a random index
+  const randomIndex_color = Math.floor(Math.random() * greenShades.length);
+
+  // Select a random color from the greenShades array
+  const color = greenShades[randomIndex_color];
+
+  const material = useMemo(() => {
+    return new THREE.SpriteMaterial({ map: spriteMap, color: color });
+  }, [spriteMap, color]);
 
   // Create sprite
   const sprite = useMemo(() => {
@@ -331,7 +347,7 @@ const PlaneWithTexture = () => {
   const material = useMemo(
     () =>
       new THREE.MeshPhongMaterial({
-        color: "#d4bfa4",
+        color: "#c3c2ab",
         map: texture1,
         bumpMap: bumpMap,
         bumpScale: 12,
@@ -343,7 +359,7 @@ const PlaneWithTexture = () => {
   const geometry = useMemo(() => new THREE.BoxGeometry(115, 5, 115), []);
   const boardLoader = useMemo(() => new THREE.TextureLoader(), []);
   const board = useMemo(
-    () => boardLoader.load("/assets/BOARD.jpg"),
+    () => boardLoader.load("/assets/bar-BG.png"),
     [boardLoader]
   );
   const material1 = useMemo(
@@ -384,11 +400,13 @@ const CameraControls = () => {
   const controlsRef: any = useRef();
   const windowWidth = useWindowWidth();
   const cameraHelper = new CameraHelper(camera);
+  const [cameraPosition, setCameraPosition] = useLocalStorage<[number, number, number]>("CameraPosition", [700, 250, 100]);
 
   useFrame(() => {
     if (controlsRef.current) {
       controlsRef.current.update();
       cameraHelper.update();
+      setCameraPosition([controlsRef.current.object.position.x, controlsRef.current.object.position.y, controlsRef.current.object.position.z]);
     }
   });
 
@@ -429,49 +447,123 @@ const CameraControls = () => {
     };
   }, [camera, gl.domElement]);
 
+
   return null; // Return null as we don't want this component to render any visible elements
 };
 
 const Camera = () => {
   const { camera } = useThree();
-  return <primitive object={camera} position={[700, 250, 100]} />;
+  const [cameraPosition] = useLocalStorage<[number, number, number]>("CameraPosition", [700, 250, 100]);
+ 
+  useEffect(() => {
+    camera.position.set(...cameraPosition);
+  }, [cameraPosition]);
+  
+  return <primitive object={camera} />;
 };
-
 const ConfirmationModal = ({
+  isActive,
+  setIsActive,
   position,
   onConfirm,
   onCancel,
 }: {
+  isActive: any
+  setIsActive: any;
   position: any;
   onConfirm: any;
   onCancel: any;
 }) => {
   const { camera } = useThree();
   const groupRef: any = useRef();
+  const [buttonYesHighlight, setButtonYesHighlight] = useState(true);
+  const [buttonNoHighlight, setButtonNoHighlight] = useState(true);
+  const [isActive_1, setIsActive_1] = useState(false);
+
+  useEffect (()=>{setIsActive_1(isActive)},[ setIsActive])
 
   useFrame(() => {
     groupRef.current.lookAt(camera.position);
   });
 
+
   const modalStyle: React.CSSProperties = {
-    width: "50vw",
-    height: "50vh",
-    padding: "1em",
-    backgroundColor: "whitesmoke",
+    width: "75vw",
+    height: "65vh",
+    backgroundImage: "url('/assets/TravelModalBG.png')",
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
     display: "flex",
     alignItems: "center",
     alignContent: "center",
+    alignSelf: "center",
     zIndex: 9999,
+    cursor: "url('/assets/cursor_menu.png'),auto",
+    opacity: isActive_1 ? 1 : 0,
+    filter: isActive_1 ? 'blur(0) sepia(0%) brightness(1)' : 'blur(10px) sepia(50%) brightness(1.1)',
+    transition : "all 0.25s ease-in-out"
   };
 
   const contentStyle: React.CSSProperties = {
     margin: "auto",
+    cursor: "url('/assets/cursor_menu.png'),auto",
   };
 
   const questionStyle: React.CSSProperties = {
-    fontSize: "2em",
-    color: "darkgray",
+    fontSize: "4em",
+    color: "whitesmoke",
     padding: "1em",
+    filter: "drop-shadow(0 0 1rem purple)",
+    cursor: "url('/assets/cursor_menu.png'),auto",
+    textShadow:
+      "-1px -1px 0 #2d1b4a, 1px -1px 0 #2d1b4a, -1px 1px 0 #2d1b4a, 1px 1px 0 #2d1b4a",
+  };
+  const ButtonStyle_1: React.CSSProperties = {
+    cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+    backgroundImage: buttonYesHighlight
+      ? "url('/assets/YesBG.png')"
+      : "url('/assets/YesBG_highlight.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "100%, 100%",
+    fontFamily: "VersalFilled-y1r3",
+    fontSize: ".75em",
+    borderRadius: "10px",
+    border: buttonYesHighlight ? "double #2d1b4a 3px" : "solid orange 1px",
+    textAlign: "center",
+    color: buttonYesHighlight ? "#2d1b4a" : "#ffe7a1",
+    width: "3em",
+    textShadow: buttonYesHighlight
+      ? "-1px -1px 0 whitesmoke, 1px -1px 0 whitesmoke, -1px 1px 0 whitesmoke, 1px 1px 0 whitesmoke"
+      : "-1px -1px 0 orange, 1px -1px 0 orange, -1px 1px 0 orange, 1px 1px 0 orange",
+
+    filter: buttonYesHighlight
+      ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+      : "drop-shadow(0 0 .5rem #CC5500) brightness(110%)saturate(110%) ",
+
+  };
+  const ButtonStyle_2: React.CSSProperties = {
+    cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+    backgroundImage: buttonNoHighlight
+      ? "url('/assets/YesBG.png')"
+      : "url('/assets/YesBG_highlight.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "100%, 100%",
+    fontFamily: "VersalFilled-y1r3",
+    fontSize: ".75em",
+    borderRadius: "10px",
+    border: buttonNoHighlight ? "double #2d1b4a 3px" : "solid orange 1px",
+    textAlign: "center",
+    color: buttonNoHighlight ? "#2d1b4a" : "#ffe7a1",
+    width: "3em",
+    textShadow: buttonNoHighlight
+      ? "-1px -1px 0 whitesmoke, 1px -1px 0 whitesmoke, -1px 1px 0 whitesmoke, 1px 1px 0 whitesmoke"
+      : "-1px -1px 0 orange, 1px -1px 0 orange, -1px 1px 0 orange, 1px 1px 0 orange",
+
+    filter: buttonNoHighlight
+      ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+      : "drop-shadow(0 0 .5rem #CC5500) brightness(110%)saturate(110%) ",
+
   };
 
   return (
@@ -480,7 +572,9 @@ const ConfirmationModal = ({
         <div className="confirmation-modal" style={modalStyle}>
           <div className="modal-content" style={contentStyle}>
             <div className="question" style={questionStyle}>
-              Venture forth?
+              <div style={{ fontFamily: "VersalFilled-y1r3" }}>
+                Venture forth< span style={{fontFamily:"Lucida Handwriting"}}>?</span>
+              </div>
             </div>
             <div
               className="buttons"
@@ -489,9 +583,32 @@ const ConfirmationModal = ({
                 justifyContent: "space-between",
                 fontSize: "3em",
               }}
+              
             >
-              <button onClick={onConfirm}>Yes</button>
-              <button onClick={onCancel}>No</button>
+              <button
+                style={ButtonStyle_1}
+                onPointerEnter={() => {
+                  setButtonYesHighlight(false);
+                }}
+                onPointerLeave={() => {
+                  setButtonYesHighlight(true);
+                }}
+                onClick={onConfirm}
+              >
+                Yes
+              </button>
+              <button
+                style={ButtonStyle_2}
+                onPointerEnter={() => {
+                  setButtonNoHighlight(false);
+                }}
+                onPointerLeave={() => {
+                  setButtonNoHighlight(true);
+                }}
+                onClick={onCancel}
+              >
+                No
+              </button>
             </div>
           </div>
         </div>
@@ -582,7 +699,7 @@ const GridSquare = ({
   );
 };
 
-const Grid = () => {
+const Grid = ({ selectedGridSquare, setSelectedGridSquare, showBattleEvent, setShowBattleEvent  } : {selectedGridSquare : any, setSelectedGridSquare : any, showBattleEvent : any, setShowBattleEvent : any }) => {
   const { LocationX, LocationY, setLocationX, setLocationY } =
     useLocationContext();
   const rotation = new Euler(-Math.PI * 0.5, 0, 0);
@@ -594,18 +711,15 @@ const Grid = () => {
   const [doubleClickIndex, setDoubleClickIndex] = useState<any>(null);
   const [isRayIntersectionEnabled, setIsRayIntersectionEnabled] =
     useState(true);
-  const [selectedGridSquare, setSelectedGridSquare] = useState<
-    [number, number] | null
-  >(null);
+ 
   const [eventNum, setEventNum] = useState<any>(3);
-  const [showBattleEvent, setShowBattleEvent] = useState<any>(null);
   const [showScenarioEvent, setShowScenarioEvent] = useState<boolean>();
   const { setInfo } = useContext<any>(BattleStateContext);
+  const { ToggleTravel, setToggleTravel } = useToggleTravelContext();
+  const [isActive, setIsActive] = useState(true); // Add this line
 
   useEffect(() => {
     console.log("Selected GridSquare: X:", LocationX, "Y:", LocationY);
-    console.log("THE SCENE NUMBER IS ", showBattleEvent);
-    console.log("THE SCENE NUMBER IS ", showScenarioEvent);
   }, [LocationX, LocationY, eventNum, showBattleEvent]);
 
   const GenerateEvents = () => {
@@ -630,13 +744,13 @@ const Grid = () => {
   ) => {
     const newPosition = [colIndex * 5 + 2.5, rowIndex * 5 + 2.5, -2];
 
-    if (event.detail === 1) {
-      // Single click action
+    if (event.detail === 2) {
+
       setDoubleClickIndex(null);
       setIsRayIntersectionEnabled(true);
       setSelectedGridSquare(null); // Reset the selected grid square
-    } else if (event.detail === 2) {
-      // Double click action
+    } else if (event.detail === 1) {
+
       if (
         newPosition[0] !== orbPosition[0] ||
         newPosition[1] !== orbPosition[1] ||
@@ -731,43 +845,49 @@ const Grid = () => {
         -2,
       ];
 
-      if (
-        newPosition[0] !== orbPosition[0] ||
-        newPosition[1] !== orbPosition[1] ||
-        newPosition[2] !== orbPosition[2]
-      ) {
-        setOrbPosition(newPosition);
-        const intersectedSquares = countIntersectedSquares(
-          orbPosition,
-          newPosition
-        );
-        const HoursTraveled = intersectedSquares * 3.4286;
-        const HoursTraveledRounded = Math.floor(HoursTraveled);
-        console.log(HoursTraveledRounded);
-        setLocationX(newPosition[0]);
-        setLocationY(newPosition[1]);
-
-        if (selectedGridSquare) {
-          setEventNum(GenerateEvents());
-          console.log("The Event Number is", eventNum);
-          if (eventNum === 1) {
-            setShowBattleEvent(true);
-          } else if (eventNum === 2) {
-            setShowScenarioEvent(true);
-          } else null;
-        }
-      }
+      setOrbPosition(newPosition);
+      setIsActive(true);
+      const intersectedSquares = countIntersectedSquares(
+        orbPosition,
+        newPosition
+      );
+      const HoursTraveled = intersectedSquares * 3.4286;
+      const HoursTraveledRounded = Math.floor(HoursTraveled);
+      console.log("Hours Traveled:", HoursTraveledRounded);
+      setLocationX(newPosition[0]);
+      setLocationY(newPosition[1]);
 
       setDoubleClickIndex(null);
       setIsRayIntersectionEnabled(true);
       setSelectedGridSquare(null); // Reset the selected grid square
+
+      // The following code will be executed after the state has been updated
+      setEventNum((prevEventNum: any) => {
+        console.log("The Event Number is", prevEventNum);
+        if (prevEventNum === 1) {
+          setShowBattleEvent(true);
+        } else if (prevEventNum === 2) {
+          setShowScenarioEvent(true);
+        } else null;
+
+        // Generate a new event number for the next time
+        return GenerateEvents();
+      });
+
+      setDoubleClickIndex(null);
+      setIsRayIntersectionEnabled(true);
+      setSelectedGridSquare(null); // Reset the selected grid square
+      const newToggleTravelValue = !ToggleTravel;
+      setToggleTravel(newToggleTravelValue);
     }
+
   };
 
   const handleCancel = () => {
     setIsRayIntersectionEnabled(true);
     setSelectedGridSquare(null); // Reset the selected grid square
     setDoubleClickIndex(null);
+  
   };
 
   const handleInfoFromBattleModal = (info: any) => {
@@ -778,32 +898,36 @@ const Grid = () => {
     setShowBattleEvent(info);
   };
 
+
   return (
     <group position={[-50, 5, 50]} rotation={rotation}>
-      {Array.from({ length: 20 }).map((_, rowIndex) =>
-        Array.from({ length: 20 }).map((_, colIndex) => (
-          <GridSquare
-            key={`${rowIndex}-${colIndex}`}
-            position={[colIndex * 5 + 2.5, rowIndex * 5 + 2.5, -2]}
-            color={
-              selectedGridSquare &&
-              selectedGridSquare[0] === rowIndex &&
-              selectedGridSquare[1] === colIndex
-                ? "lime" // Set the color to lime green if the grid square is selected
-                : "forestgreen"
-            }
-            onClick={(event: React.PointerEvent) =>
-              handleGridSquareClick(rowIndex, colIndex, event)
-            }
-            onDoubleClick={handleConfirm}
-            isRayIntersectionEnabled={
-              isRayIntersectionEnabled && !selectedGridSquare
-            } // Disable ray intersection when a grid square is selected
-          />
-        ))
-      )}
+      {ToggleTravel &&
+        Array.from({ length: 20 }).map((_, rowIndex) =>
+          Array.from({ length: 20 }).map((_, colIndex) => (
+            <GridSquare
+              key={`${rowIndex}-${colIndex}`}
+              position={[colIndex * 5 + 2.5, rowIndex * 5 + 2.5, -2]}
+              color={
+                selectedGridSquare &&
+                selectedGridSquare[0] === rowIndex &&
+                selectedGridSquare[1] === colIndex
+                  ? "lime" // Set the color to lime green if the grid square is selected
+                  : "forestgreen"
+              }
+              onClick={(event: React.PointerEvent) =>
+                handleGridSquareClick(rowIndex, colIndex, event)
+              }
+              onDoubleClick={handleConfirm}
+              isRayIntersectionEnabled={
+                isRayIntersectionEnabled && !selectedGridSquare
+              } // Disable ray intersection when a grid square is selected
+            />
+          ))
+        )}
       {selectedGridSquare && (
         <ConfirmationModal
+        isActive={isActive}
+        setIsActive={setIsActive}
           position={[selectedGridSquare[0], selectedGridSquare[1]]}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
@@ -892,16 +1016,19 @@ const PlayerMapIcon = ({
 const App = () => {
   const { info } = useContext(BattleStateContext);
   const [isReady, setIsReady] = useState(false);
-  const [, setLoadingTime] = useState<number | null>(null);
+  const [loadingTime, setLoadingTime] = useState<any>(0);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [showCanvas, setShowCanvas] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
   const [showCreateCharacter, setShowCreateCharacter] = useState(false);
-  // const [showBattle, setShowBattle] = useState(info);
+  const { ToggleTravel, setToggleTravel } = useToggleTravelContext();
   const startTime = useRef<number>(0);
   const { LocationX, LocationY } = useLocationContext();
   const rotation = new THREE.Euler(-Math.PI * 0.5, 0, 0);
+  const [selectedGridSquare, setSelectedGridSquare] = useState<[number, number] | null>(null);
+  const [showBattleEvent, setShowBattleEvent] = useState<boolean>(false);
+  const [isBattleReady, setIsBattleReady] = useState(false);
 
   const SetBackground = () => {
     const { scene } = useThree();
@@ -912,24 +1039,20 @@ const App = () => {
   };
 
   // Use useCallback to memoize the toggleGrid function
-  const toggleGrid = useCallback(() => {
-    setShowGrid((prevShowGrid) => !prevShowGrid);
-  }, []);
-  const toggleCharacterSheet = useCallback(() => {
-    setShowCharacter((prevShowCharacter) => !prevShowCharacter);
-  }, []);
-  const toggleCreateCharacterSheet = useCallback(() => {
-    setShowCreateCharacter((prevShowCreateCharacter) => !prevShowCreateCharacter);
-  }, []);
+  const toggleTravel = useCallback(() => {
+    const newToggleTravelValue = !ToggleTravel;
+    setToggleTravel(newToggleTravelValue);
+  }, [ToggleTravel]);
+
 
   useEffect(() => {
     const loadData = async () => {
       startTime.current = performance.now();
-      const delay = 2000; // Replace with your desired loading time in milliseconds
+      const delay = 3300; // Replace with your desired loading time in milliseconds
 
       const progressInterval = setInterval(() => {
         setLoadingProgress((prevProgress) => prevProgress + 0.5);
-      }, 20);
+      }, 14);
 
       // Perform your actual loading logic here
       // For example, fetching data from an API or loading external resources
@@ -940,13 +1063,26 @@ const App = () => {
       setLoadingTime(calculatedLoadingTime);
       clearInterval(progressInterval);
       setIsReady(true);
-      setTimeout(() => {
+      console.log();
+      if (loadingTime >= 2000) {
         setShowCanvas(true);
-      }, 100);
+      }
     };
-
+    if (showCanvas === true) {
+      setShowCanvas(false);
+    }
     loadData();
   }, [isReady]);
+
+  useEffect(() => {
+    if (showBattleEvent) { // Assuming showBattleEvent is triggered when User selects "fight"
+      setIsBattleReady(false); // Set isBattleReady to false to show the loader
+      const delay = 2000; // Set your desired loading time in milliseconds
+      setTimeout(() => {
+        setIsBattleReady(true); // Set isBattleReady to true to show the Battle and BattleStage components
+      }, delay);
+    }
+  }, [showBattleEvent]); // This effect depends on the showBattleEvent state
 
   const forestPositions = useMemo(() => [[-13, 0.2, 25]], []);
   const forestPositions1 = useMemo(() => [[-7, 0.5, 25]], []);
@@ -966,17 +1102,21 @@ const App = () => {
   const MemoizedFerns = React.memo(Ferns);
 
   const resetLoading = () => {
-    // setIsReady(false);
+    setLoadingProgress(0);
+    setLoadingTime(0);
+    setIsReady(false);
     setShowCanvas(false);
-    setTimeout(() => {
-      setShowCanvas(true);
-    }, 250);
   };
 
   const forestComponents = useMemo(() => {
     return forestPositions.map((pos, index) => (
       <>
-        <Forest numberOfTrees={4000} areaSize={52} position={pos} key={index} />
+        <Forest
+          key={`forest-${index}`}
+          numberOfTrees={4000}
+          areaSize={52}
+          position={pos}
+        />
       </>
     ));
   }, [forestPositions]);
@@ -984,14 +1124,24 @@ const App = () => {
   const forestComponents1 = useMemo(() => {
     return forestPositions1.map((pos, index) => (
       <>
-        <Forest numberOfTrees={1500} areaSize={52} position={pos} key={index} />
+        <Forest
+          key={`forest1-${index}`}
+          numberOfTrees={1500}
+          areaSize={52}
+          position={pos}
+        />
       </>
     ));
   }, [forestPositions1]);
   const forestComponents2 = useMemo(() => {
     return forestPositions2.map((pos, index) => (
       <>
-        <Forest numberOfTrees={1500} areaSize={39} position={pos} key={index} />
+        <Forest
+          key={`forest2-${index}`}
+          numberOfTrees={1500}
+          areaSize={39}
+          position={pos}
+        />
       </>
     ));
   }, [forestPositions2]);
@@ -1000,10 +1150,10 @@ const App = () => {
     return shrubPositions.map((pos, index) => (
       <>
         <MemoizedFerns
+          key={`shrub-${index}`}
           numberOfTrees={800}
           areaSize={40}
           position={pos}
-          key={index}
         />
       </>
     ));
@@ -1012,113 +1162,308 @@ const App = () => {
     return shrubPositions1.map((pos, index) => (
       <>
         <MemoizedFerns
+          key={`shrub1-${index}`}
           numberOfTrees={900}
           areaSize={40}
           position={pos}
-          key={index}
         />
       </>
     ));
   }, [shrubPositions1]);
 
+  const [cursorStyle, setCursorStyle] = useState(
+    "url('/assets/cursor.png'),crosshair"
+  );
+
   return (
     <>
+      <style>
+        {`
+      @font-face {
+        font-family: 'VersalFilled-y1r3';
+        src: url('assets/VersalFilled-y1r3.ttf') format('opentype');
+      }
+    
+    `}
+      </style>
       {!isReady ? (
-        <div>
-          <h2>Loading...</h2>
-          <div
-            style={{ width: "50vw", height: "10px", backgroundColor: "#DDD" }}
-          >
-            <div
-              style={{
-                width: `${loadingProgress}%`,
-                height: "100%",
-                backgroundColor: "#000",
-              }}
-            />
-          </div>
+        <div
+          style={{
+            backgroundImage: "url('/assets/map_bg.png')",
+            backgroundSize: "100% 100%", // or '100% 100%' for non-uniform scaling
+            backgroundRepeat: "no-repeat",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh", // ensure the container takes the full viewport height
+            cursor: "url('/assets/cursor-loading.png'),auto",
+       
+          }}
+        >
+          <CircularProgress progress={loadingProgress} />
         </div>
       ) : info ? (
         <>
-            <BattleStage  />
+          <BattleStage />
           <Battle onClose={resetLoading} />
-    
         </>
       ) : (
-        <Canvas
-          style={{
-            width: "50vw",
-            height: "50vh",
-            borderRadius: "10px",
-            background: "linear-gradient(#77ccf7, #aedbf2)",
-            backgroundColor: "skyblue",
-            opacity: showCanvas ? 1 : 0,
-            transition: "opacity .25s ease-in, filter 1s ease-in",
-            filter: showCanvas
-              ? "blur(0px) contrast(112%) Sepia(0.25) brightness(1.12)"
-              : "blur(25px) contrast(2) Sepia(100%) brightness(2)",
+        <div
+          onPointerDown={() =>
+            setCursorStyle("url('/assets/cursor-click.png'),crosshair")
+          }
+          onPointerUp={() =>
+            setCursorStyle("url('/assets/cursor.png'),crosshair")
+          }
+          onClick={() => {
+            setCursorStyle("url('/assets/cursor-click.png'),auto");
+            setTimeout(() => {
+              setCursorStyle("url('/assets/cursor.png'),auto");
+            }, 1);
           }}
-          shadows
-          gl={{ alpha: true }}
-          camera={{ position: [0, 10, 10], fov: 20 }}
+          style={{
+            cursor: "url('/assets/cursor_menu.png'),auto",
+            opacity: showCanvas ? 1 : 0,
+            transition: "opacity 1s ease-in, filter 1s ease-in",
+            filter: showCanvas
+              ? "blur(0px)brightness(100%)"
+              : "blur(25px)brightness(200%)",
+            backgroundImage: showCanvas
+              ? "url('/assets/map_bg2.png')"
+              : "url('/assets/map_bg.png')",
+            backgroundSize: "100% 100%",
+            backgroundRepeat: "no-repeat",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            
+          }}
         >
-          <SetBackground />
-          <fog attach="fog" args={["#77ccf7", 50, 375]} />
-          <CameraControls />
-          <Camera />
-          <ambientLight intensity={0.35} />
-          <directionalLight
-            position={[10, 50, 10]}
-            intensity={1}
-            castShadow
-            shadow-mapSize-height={1024}
-            shadow-mapSize-width={1024}
-            shadow-camera-far={50}
-            shadow-camera-left={-10}
-            shadow-camera-right={10}
-            shadow-camera-top={10}
-            shadow-camera-bottom={-10}
-            shadow-bias={-0.001}
-          />
-          {showGrid && <Grid />}
-          <PlaneWithTexture />
-          {birdPositions.map((position, index) => (
-            <MemoizedBird key={index} position={position} />
-          ))}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              flexBasis: "7%",
+              backgroundImage:'url(/assets/button_Menu_BG.png)',
+              backgroundSize: '100% auto',
+              backgroundRepeat: 'repeat-y',
+              padding:'.25rem',
+              margin:'.5rem',
+              borderRadius:'1rem',
+              border: "double 3px tan",
+              opacity: showCanvas ? 1 : 0,
+              transition: "opacity 2s ease-out",
+           
+         
+            }}
+          >
+            <button
+              style={{
+                background: "none",
+                textDecoration: "none",
+                border: "none",
+                cursor: "url('/assets/cursor_menu.png'),auto",
+                pointerEvents: selectedGridSquare || showBattleEvent ? 'none' : 'auto',
+                filter: showCanvas
+                ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+                : "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)",
+                transition: "filter 2s ease-out",
+                transitionDelay: '.50s'
 
-          <Clouds />
-          <Suspense fallback={null}>
-            <Model />
-            <MultipleCities />
-          </Suspense>
-          <group position={[-50, 5, 50]} rotation={rotation}>
-            <PlayerMapIcon position={[LocationX, LocationY, -2]} />
-          </group>
-          <BiomeGenerator />
-          <GenerateEnemy />
-          <EffectComposer>
-            <DepthOfField
-              focusDistance={0.04}
-              focalLength={0.02}
-              bokehScale={1.55}
-              height={300}
+              }}
+            >
+              <img
+                src="/assets/fast_travel_button.png"
+                onClick={toggleTravel}
+                alt="Toggle Grid"
+                style={{
+                  transition: "opacity .25s ease-out, filter 1s ease-out",
+                  width: "100%",
+                  filter: ToggleTravel
+                    ? "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)"
+                    : "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)",
+
+                  cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+                }}
+              />
+            </button>
+            <button
+              style={{
+                background: "none",
+                textDecoration: "none",
+                border: "none",
+                cursor: "url('/assets/cursor_menu.png'),auto",
+                filter: showCanvas
+                ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+                : "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)",
+                transition: "filter 2s ease-in-out",
+                transitionDelay: '.50s'
+              }}
+            >
+              <img
+                src="/assets/camp_button.png"
+                alt=""
+                style={{
+                  transition: "opacity 1.25s ease-in, filter .75s ease-in",
+                  width: "100%",
+                  opacity: showCanvas ? 1 : 0,
+                  cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+                }}
+              />
+            </button>
+            <button
+              style={{
+                background: "none",
+                textDecoration: "none",
+                border: "none",
+                cursor: "url('/assets/cursor_menu.png'),auto",
+                filter: showCanvas
+                ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+                : "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)",
+                transition: "filter 2s ease-out",
+                transitionDelay: '.50s'
+              }}
+            >
+              <img
+                src="/assets/inventory_button.png"
+                alt=""
+                style={{
+                  transition: "opacity 1.25s ease-in, filter .75s ease-in",
+                  maxWidth: "100%",
+                  opacity: showCanvas ? 1 : 0,
+                  cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+                }}
+              />
+            </button>
+            <button
+              style={{
+                background: "none",
+                textDecoration: "none",
+                border: "none",
+                cursor: "url('/assets/cursor_menu.png'),auto",
+                filter: showCanvas
+                ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%) "
+                : "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)",
+                transition: "filter 2s ease-out",
+                transitionDelay: '.50s'
+              }}
+            >
+              <img
+                src="/assets/journal_button.png"
+                alt=""
+                style={{
+                  transition: "opacity 1.25s ease-in, filter .75s ease-in",
+                  maxWidth: "100%",
+                  opacity: showCanvas ? 1 : 0,
+                  cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+                }}
+              />
+            </button>
+            <button
+              style={{
+                background: "none",
+                textDecoration: "none",
+                border: "none",
+                cursor: "url('/assets/cursor_menu.png'),auto",
+                filter: showCanvas
+                ? "drop-shadow(0 0 0 #CC5500) brightness(100%)saturate(100%)"
+                : "drop-shadow(0 0 .5rem #CC5500) brightness(200%)saturate(200%)",
+                transition: "filter 2s ease-out",
+                transitionDelay: '.50s'
+              }}
+            >
+              <img
+                src="/assets/character_button.png"
+                alt=""
+                style={{
+                  transition: "opacity 1.25s ease-in, filter .75s ease-in",
+                  maxWidth: "100%",
+                  opacity: showCanvas ? 1 : 0,
+                  cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+                }}
+              />
+            </button>
+
+            {/* <button onClick={toggleCreateCharacterSheet}>{showCreateCharacter ? "Close" : "Character Creation"}</button>
+      <button onClick={toggleCharacterSheet}>{showCharacter ? "Close" : "Character"}</button> */}
+          </div>
+          <Canvas
+            performance={{ min: 0.5, max: 1, debounce: 200 }}
+            style={{
+              width: "65vw",
+              height: "64vh",
+              border: "double 3px tan",
+              borderRadius: "1rem",
+              opacity: showCanvas ? 1 : 0,
+              cursor: cursorStyle,
+              margin:'.5rem',
+              transition: "opacity 1s ease-in, filter 2s ease-out",
+              filter: showCanvas
+                ? "blur(0px) invert(0)contrast(112%) Sepia(0.25) brightness(1.12)"
+                : "blur(50px) invert(100%) contrast(2) Sepia(100%) brightness(2) ",
+              flexBasis: "75%",
+            }}
+            shadows
+            gl={{ alpha: true }}
+            camera={{ position: [0, 10, 10], fov: 20 }}
+          >
+            <SetBackground />
+            <fog attach="fog" args={["#77ccf7", 50, 375]} />
+            <CameraControls />
+            <Camera />
+            <ambientLight intensity={0.35} />
+            <directionalLight
+              position={[10, 50, 10]}
+              intensity={1}
+              castShadow
+              shadow-mapSize-height={1024}
+              shadow-mapSize-width={1024}
+              shadow-camera-far={50}
+              shadow-camera-left={-10}
+              shadow-camera-right={10}
+              shadow-camera-top={10}
+              shadow-camera-bottom={-10}
+              shadow-bias={-0.001}
             />
-            <Pixelation granularity={2} />
-            <Noise opacity={0.01} />
-          </EffectComposer>
+            <Grid selectedGridSquare={selectedGridSquare} setSelectedGridSquare={setSelectedGridSquare} showBattleEvent={showBattleEvent} setShowBattleEvent={setShowBattleEvent} />
+            <PlaneWithTexture />
+            {birdPositions.map((position, index) => (
+              <MemoizedBird key={index} position={position} />
+            ))}
 
-          {forestComponents}
-          {forestComponents1}
-          {forestComponents2}
-          {WoodlandComponents}
-          {WoodlandComponents1}
-        </Canvas>
+            <Clouds />
+            <Suspense fallback={null}>
+              <Model />
+              <MultipleCities />
+            </Suspense>
+            <group position={[-50, 5, 50]} rotation={rotation}>
+              <PlayerMapIcon position={[LocationX, LocationY, -2]} />
+            </group>
+            <BiomeGenerator />
+            <GenerateEnemy />
+            <EffectComposer>
+              <DepthOfField
+                focusDistance={0.04}
+                focalLength={0.02}
+                bokehScale={1.55}
+                height={300}
+              />
+              <Pixelation granularity={0} />
+              <Noise opacity={0.01} />
+            </EffectComposer>
+
+            {forestComponents}
+            {forestComponents1}
+            {forestComponents2}
+            {WoodlandComponents}
+            {WoodlandComponents1}
+          </Canvas>
+        </div>
       )}
-      <button onClick={toggleGrid}>{showGrid ? "Close" : "Travel"}</button>
-      <button onClick={toggleCreateCharacterSheet}>{showCreateCharacter ? "Close" : "Character Creation"}</button>
-      <button onClick={toggleCharacterSheet}>{showCharacter ? "Close" : "Character"}</button>
-      {showCreateCharacter && <CreateCharacter /> }
-      {showCharacter && <Character /> }
+
+      {showCreateCharacter && <CreateCharacter />}
+      {showCharacter && <Character />}
     </>
   );
 };

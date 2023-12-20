@@ -20,7 +20,7 @@ const ForestFauna:Fauna[] = [
     {
     Type: "Forest",
     name: "Forest Bandit",
-    HP: hitpoints * .25,
+    HP: hitpoints * 2.25,
     EP: endurancepoints * .25,
     AP: actionpoints,
     lowDam: 1,
@@ -32,7 +32,7 @@ const ForestFauna:Fauna[] = [
     {
     Type: "Forest",
     name: "Underman",
-    HP: hitpoints * .75,
+    HP: hitpoints * 2.75,
     EP: endurancepoints * .25,
     AP: actionpoints,
     lowDam: 1,
@@ -44,9 +44,9 @@ const ForestFauna:Fauna[] = [
     {
     Type: "Forest",
     name: "Daeodon",
-    HP: hitpoints * .5,
+    HP: hitpoints * 2.5,
     EP: 0,
-    AP: actionpoints * .25,
+    AP: 100,
     lowDam: 1,
     HighDam: 5,
     description: "A squealing scarred monstrostiy, its mouth full of jagged teeth and tusks",

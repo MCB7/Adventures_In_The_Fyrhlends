@@ -2,31 +2,31 @@ import React, { createContext, useContext } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface EnemyStatsContextData {
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  wisdom: number;
-  intelligence: number;
-  charisma: number;
+  enemyStrength: number;
+  enemyDexterity: number;
+  enemyConstitution: number;
+  enemyWisdom: number;
+  enemyIntelligence: number;
+  enemyCharisma: number;
   setEnemyStats: (Enemystats: EnemyStats) => void;
 }
 
 interface EnemyStats {
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  wisdom: number;
-  intelligence: number;
-  charisma: number;
+  enemyStrength: number;
+  enemyDexterity: number;
+  enemyConstitution: number;
+  enemyWisdom: number;
+  enemyIntelligence: number;
+  enemyCharisma: number;
 }
 
 const EnemyStatsContext = createContext<EnemyStatsContextData>({
-  strength: 0,
-  dexterity: 0,
-  constitution: 0,
-  wisdom: 0,
-  intelligence: 0,
-  charisma: 0,
+  enemyStrength: 0,
+  enemyDexterity: 0,
+  enemyConstitution: 0,
+  enemyWisdom: 0,
+  enemyIntelligence: 0,
+  enemyCharisma: 0,
   setEnemyStats: () => {},
 });
 
@@ -38,12 +38,12 @@ interface Props {
 
 export const EnemyStatsProvider: React.FC<Props> = ({ children }) => {
   const [Enemystats, setEnemyStats] = useLocalStorage<EnemyStats>("Enemystats", {
-    strength: 0,
-    dexterity: 0,
-    constitution: 0,
-    wisdom: 0,
-    intelligence: 0,
-    charisma: 0,
+    enemyStrength: 0,
+    enemyDexterity: 0,
+    enemyConstitution: 0,
+    enemyWisdom: 0,
+    enemyIntelligence: 0,
+    enemyCharisma: 0,
   });
 
   return (

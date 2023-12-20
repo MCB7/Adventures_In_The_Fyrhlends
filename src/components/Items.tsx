@@ -89,7 +89,7 @@ export interface Weapon {
       highDamage: "8",
       weight: "4",
       special: null,
-      icon: "item/img.icon",
+      icon: "/assets/Item_BG.png",
       image: "item/img.png",
     },
     {
@@ -102,7 +102,7 @@ export interface Weapon {
         highDamage: "10",
         weight: "4",
         special: null,
-        icon: "item/img.icon",
+        icon:  "/assets/Item_BG.png",
         image: "item/img.png",
       },
     // Add more weapons here
@@ -116,7 +116,7 @@ export interface Weapon {
         defense: "10",
         weight: "7",
         special: null,
-        icon: "item/img.icon",
+        icon:  "/assets/Item_BG.png",
         image:  "item/img.png",
     },
     {
@@ -126,7 +126,7 @@ export interface Weapon {
         defense: "20",
         weight: "15",
         special: null,
-        icon: "item/img.icon",
+        icon:  "/assets/Item_BG.png",
         image:  "item/img.png",
     
     }
@@ -142,7 +142,7 @@ export interface Weapon {
       defense: "40",
       weight: "10",
       special: null,
-      icon: "item/img.icon",
+      icon:  "/assets/Item_BG.png",
       image:  "item/img.png",
     },
     {
@@ -152,7 +152,7 @@ export interface Weapon {
       defense: "50",
       weight: "10",
       special: null,
-      icon: "item/img.icon",
+      icon:  "/assets/Item_BG.png",
       image:  "item/img.png",
     },
   ]
@@ -166,7 +166,7 @@ export interface Weapon {
       defense: "50",
       weight: "25",
       special: null,
-      icon: "item/img.icon",
+      icon:  "/assets/Item_BG.png",
       image:  "item/img.png",
     },
     {
@@ -176,7 +176,7 @@ export interface Weapon {
       defense: "60",
       weight: "35",
       special: null,
-      icon: "item/img.icon",
+      icon: "/assets/Item_BG.png",
       image:  "item/img.png",
     },
   ]
@@ -190,7 +190,7 @@ export interface Weapon {
     defense: "10",
     weight: "5",
     special: null,
-    icon: "item/img.icon",
+    icon:  "/assets/Item_BG.png",
     image:  "item/img.png",}
   ]
 
@@ -202,7 +202,7 @@ export interface Weapon {
     defense: "1",
     weight: "5",
     special: null,
-    icon: "item/img.icon",
+    icon:  "/assets/Item_BG.png",
     image:  "item/img.png",}
   ]
 
@@ -213,7 +213,7 @@ export interface Weapon {
       name: "Silver Ring",
       description: "a hammered silver band",
       special: null,
-      icon: "item/img.icon",
+      icon: "/assets/Item_BG.png",
       image: "item/img.png",
     }
   ]
@@ -225,7 +225,7 @@ export interface Weapon {
          name: "Bone Amulet",
          description: "an Amulet carved from bone, it is covered in runic designs to ward off ill intent for the wearer",
          special: null,
-         icon: "item/img.icon",
+         icon:  "/assets/Item_BG.png",
          image: "item/img.png",
        }
      ]

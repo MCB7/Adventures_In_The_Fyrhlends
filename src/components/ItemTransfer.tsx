@@ -121,22 +121,53 @@ const ItemTransfer: React.FC = () => {
   //     element2.remove();
   //   }
   // }, 100);
+  let transferSlot1Obj = null;
+  if (transferSlot1 && transferSlot1 !== "empty") {
+    transferSlot1Obj = JSON.parse(transferSlot1);
+  }
+ 
+
+  let transferSlot2Obj = null;
+  if (transferSlot2 && transferSlot2 !== "empty") {
+    transferSlot2Obj = JSON.parse(transferSlot2);
+  }
+  
+  let icon = transferSlot1Obj ? transferSlot1Obj.icon : null;
+  let icon_1 = transferSlot2Obj ? transferSlot2Obj.icon : null;
 
   return (
     <>
-      <h4>LOOT</h4>
-      <div>
-        <p>ITEM:{transferSlot1} </p>
-        <button ref={transferSlot1Ref} id="TransferSlot1" onClick={() => PickUp(transferSlot1, setTransferSlot1)}>
-          Pick up
+      <div style={{cursor: "url('/assets/cursor_menu.png'),auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "50vh"}}>
+  
+        <button style={{
+            background: "none",
+            color: "inherit",
+            border: "none",
+            padding: 0,
+            font: "inherit",
+            cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+            outline: "inherit",
+            margin:'1rem',
+          }} ref={transferSlot1Ref} id="TransferSlot1" onClick={() => PickUp(transferSlot1, setTransferSlot1)}>
+        <img src={icon} style={{margin: "1rem", width: "10rem",border: "solid 1px tan",borderRadius:'10px'}}/>
         </button>
-        <p>ITEM:{transferSlot2} </p>
-        <button ref={transferSlot2Ref} id="TransferSlot2" onClick={() => PickUp(transferSlot2, setTransferSlot2)}>
-          Pick up
+    
+        <button style={{
+            background: "none",
+            color: "inherit",
+            border: "none",
+            padding: 0,
+            font: "inherit",
+            cursor: "url('/assets/cursor_menu_highlight.png'),auto",
+            outline: "inherit",
+            margin:'1rem',
+       
+            
+          }} ref={transferSlot2Ref} id="TransferSlot2" onClick={() => PickUp(transferSlot2, setTransferSlot2)}>
+        <img src={icon_1} style={{margin: "1rem", width: "10rem", border: "solid 1px tan",borderRadius:'10px'}}/>
         </button>
+       
       </div>
-
-      <div></div>
     </>
   );
 };

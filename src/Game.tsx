@@ -15,13 +15,15 @@ import { BlockAnimationProvider } from "./context/BlockAnimationContext";
 import { EnemyHitAnimationProvider } from "./context/EnemyHitAnimationContext";
 import { EnemyBlockAnimationProvider } from "./context/EnemyBlockAnimationContext";
 import { EnemyHurtAnimationProvider } from "./context/EnemyHurtContext";
+import { ToggleTravelProvider } from "./context/ToggleTravelContext";
 // import CreateCharacter from "./components/CreateCharacter";
 // import Character from "./components/Character";
 // import Battle from "./components/Battle";
 // import ItemTransfer from "./components/ItemTransfer";
 // import Inventory from "./components/Inventory";
-// import Battle from "./components/Battle";
-// import BattleStage from "./components/BattleStage";
+import Battle from "./components/Battle";
+import BattleStage from "./components/BattleStage";
+import './game.css';
 
 import Map from "./components/Map";
 
@@ -45,18 +47,20 @@ const Game: React.FC = () => {
                                   <EnemyBlockAnimationProvider>
                                     <EnemyHurtAnimationProvider>
                                       <IsAnimationProvider>
-                                      {/* <BattleStage /> */}
-                                      <Map/>
-                                      {/* 
-                                      <Battle /> 
-                                      
-                                      <CreateCharacter/> 
+                                        <ToggleTravelProvider>
+                                      <BattleStage />
                                       <Battle/> 
+                                      {/* <Map/> */}
+                                   
+                                      {/* <Battle />  */}
+                                      
+                                      {/* <CreateCharacter/> 
+                             
                                       <Character/>
                                       <Inventory/>
-                                      <ItemTransfer/>  */}
+                                      <ItemTransfer/>   */}
 
-                                    
+                                        </ToggleTravelProvider>
                                       </IsAnimationProvider>
                                     </EnemyHurtAnimationProvider>
                                   </EnemyBlockAnimationProvider>
