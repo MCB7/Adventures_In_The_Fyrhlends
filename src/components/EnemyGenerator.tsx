@@ -51,7 +51,7 @@ const GenerateEnemy: React.FC = () => {
   useEffect(() => {
     setEnemy(chosenEnemy);
     simulateRollDice();
-    console.log(enemy.name)
+    // console.log(enemy.name)
   }, [chosenEnemy]);
 
   return null;

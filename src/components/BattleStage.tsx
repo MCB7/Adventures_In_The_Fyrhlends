@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
-import { Canvas, useLoader } from "@react-three/fiber";
-import { TextureLoader } from "three";
+import { Canvas} from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { useHitAnimationContext } from "../context/HitAnimationContext";
 import { useBlockAnimationContext } from "../context/BlockAnimationContext";
 import { useHurtAnimationContext } from "../context/HurtAnimationContext";
+import { useDeathAnimationContext } from "../context/DeathContext";
 import { useEnemyHitAnimationContext } from "../context/EnemyHitAnimationContext";
 import { useEnemyHurtAnimationContext } from "../context/EnemyHurtContext";
 import { useEnemyBlockAnimationContext } from "../context/EnemyBlockAnimationContext";
@@ -12,6 +12,9 @@ import BloodParticles from "./BloodParticles";
 import { EffectComposer, Pixelation, Noise, ToneMapping, DepthOfField} from '@react-three/postprocessing';
 import * as THREE from "three";
 import StageEnvironment from './stageEnvironment'
+import StageEnvironment_001 from './stageEnvironment_001'
+import { useBiomeContext } from "../context/BiomeContext";
+
 
 const Battle: React.FC = () => {
 
@@ -22,12 +25,13 @@ const Battle: React.FC = () => {
     const { hit, setHit } = useHitAnimationContext();
     const { BlockAnim, setBlockAnim } = useBlockAnimationContext();
     const { Hurt, setHurt } = useHurtAnimationContext();
+    const {Death} = useDeathAnimationContext();
+
     const [hitAnim, setHitAnim] = useState<number>(9);
     const hitTimeoutRef : any = useRef();
     const blockAnimTimeoutRef : any = useRef();
     const hurtTimeoutRef : any = useRef();
-    const killSwitch : any = true
-   
+
     function randomNumber(): number {
       return Math.random() < 0.5 ? 9 : 10;
     }
@@ -112,7 +116,9 @@ const Battle: React.FC = () => {
           }, 500);
         }
       }
-if (killSwitch === false) {
+if (Death === true ) {
+    
+  actions[names[1]].stop();
   actions[names[6]].stop();
   actions[names[7]].stop();
   actions[names[8]].stop();
@@ -141,7 +147,7 @@ if (killSwitch === false) {
 
 
     // EQUIPMENT
-    const gltf = useGLTF("/assets/Sword_Painted.gltf");
+    const gltf = useGLTF("/assets/sword_iron.gltf");
     const stickNode : any = gltf.scene.children.find(
       (child) => child.name === "Cube"
     );
@@ -392,7 +398,8 @@ if (killSwitch === false) {
     const { EnemyBlockAnim, setEnemyBlockAnim } =useEnemyBlockAnimationContext();
     const { EnemyHurt, setEnemyHurt } = useEnemyHurtAnimationContext();
     const [hitAnim, setHitAnim] = useState<number>(9);
-    const killSwitch : any = false
+
+    const {EnemyDeath} = useDeathAnimationContext();
 
     function randomNumber(): number {
       return Math.random() < 0.5 ? 9 : 10;
@@ -456,7 +463,8 @@ if (killSwitch === false) {
       }
    
 
-    if (killSwitch === true) {
+    if (EnemyDeath === true) { 
+      actions[names[1]].stop();
       actions[names[6]].stop();
       actions[names[7]].stop();
       actions[names[8]].stop();
@@ -466,11 +474,16 @@ if (killSwitch === false) {
       action.setDuration(actions[names[1]]._clip.duration / .5).play();
     }
   }, [actions, Enemyhit, EnemyBlockAnim, EnemyHurt]);
+
+
+  
+
     useEffect(() => {
       playAnimation();
       groupRef.current.position.set(0.35, -0.35, 4.25);
       groupRef.current.rotation.set(0, 1.5, 0);
     }, [playAnimation]);
+
 
     return (
       <group ref={groupRef}>
@@ -493,6 +506,9 @@ if (killSwitch === false) {
   useEffect(()=>{[showCanvas]})
   resetLoading();
 
+  
+  const { biome, setbiome } = useBiomeContext();
+    console.log("Type:", biome.Type);
   return (
     <>
             <div style={{
@@ -527,6 +543,11 @@ if (killSwitch === false) {
       : "blur(25px) contrast(2) Sepia(100%) brightness(0)",
   }}
 >
+
+<>
+      {biome.Type === 'Mire' ? <StageEnvironment /> : null}
+      {biome.Type === 'Forest' ? <StageEnvironment_001 /> : null}
+    </>
 <fog attach="fog" args={['#676f65', 0.001, 18]} />
   <EffectComposer>
     <Noise opacity={0.01} />
@@ -554,8 +575,9 @@ if (killSwitch === false) {
     <PlayerModel />
     <EnemyModel />
 
-    <StageEnvironment/>
+    
     <ToneMapping middleGrey={0.1} maxLuminance={38} />
+
   </EffectComposer>
 </Canvas>
 </div>

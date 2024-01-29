@@ -30,7 +30,6 @@ import {
   DepthOfField,
   EffectComposer,
   Noise,
-  Pixelation,
 } from "@react-three/postprocessing";
 import { useWindowWidth } from "../hooks/useWindowWidth";
 import Character from "./Character";
@@ -1251,7 +1250,8 @@ const App = () => {
               padding:'.25rem',
               margin:'.5rem',
               borderRadius:'1rem',
-              border: "double 3px tan",
+              border: '3px double transparent',
+              boxShadow: '0 0 10px 10px rgba(0, 0, 0, 0.25)',
               opacity: showCanvas ? 1 : 0,
               transition: "opacity 2s ease-out",
            
@@ -1388,12 +1388,14 @@ const App = () => {
             {/* <button onClick={toggleCreateCharacterSheet}>{showCreateCharacter ? "Close" : "Character Creation"}</button>
       <button onClick={toggleCharacterSheet}>{showCharacter ? "Close" : "Character"}</button> */}
           </div>
+
           <Canvas
             performance={{ min: 0.5, max: 1, debounce: 200 }}
             style={{
-              width: "65vw",
-              height: "64vh",
-              border: "double 3px tan",
+              width: "85vw",
+              height: "65vh",
+              border: '3px double transparent',
+              boxShadow: '0 0 10px 10px rgba(0, 0, 0, 0.25)',
               borderRadius: "1rem",
               opacity: showCanvas ? 1 : 0,
               cursor: cursorStyle,
@@ -1443,13 +1445,14 @@ const App = () => {
             <BiomeGenerator />
             <GenerateEnemy />
             <EffectComposer>
+              
               <DepthOfField
                 focusDistance={0.04}
                 focalLength={0.02}
                 bokehScale={1.55}
                 height={300}
               />
-              <Pixelation granularity={0} />
+  
               <Noise opacity={0.01} />
             </EffectComposer>
 
@@ -1458,7 +1461,33 @@ const App = () => {
             {forestComponents2}
             {WoodlandComponents}
             {WoodlandComponents1}
+
           </Canvas>
+          <section style={{
+            position: "absolute",
+          left:"15%",    
+         width: "75vw",
+         height: "68vh",
+         
+        
+         borderRadius: "1rem",
+         opacity: showCanvas ? .75 : 0,
+         cursor: cursorStyle,
+         margin:'.5rem',
+         transition: "opacity 1s ease-in, filter 2s ease-out",
+         filter: showCanvas
+           ? "blur(0px) invert(0)contrast(112%) Sepia(0.25) brightness(1.12)"
+           : "blur(50px) invert(100%) contrast(2) Sepia(100%) brightness(2) ",
+      
+
+ overflow: "hidden",
+ padding: "1em", // Adjust this value to control the border size
+
+ background: "url('/assets/map_bg2_COVER.png')",
+ backgroundRepeat: "no-repeat", // This sets the background image
+ backgroundPosition: 'center',
+ backgroundSize: "100% 100%" // This makes the background image scale nicely within the border
+}}/>
         </div>
       )}
 

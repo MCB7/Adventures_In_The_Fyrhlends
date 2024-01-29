@@ -12,7 +12,7 @@ import { useEnemyHitAnimationContext } from "../context/EnemyHitAnimationContext
 import { useEnemyBlockAnimationContext } from "../context/EnemyBlockAnimationContext";
 import { useEnemyHurtAnimationContext } from "../context/EnemyHurtContext";
 import { useEnemyStatsContext } from "../context/EnemyStatsContext";
-
+import { useDeathAnimationContext } from "../context/DeathContext";
 type BattleProps = {
   onClose: () => void;
 };
@@ -45,7 +45,8 @@ const Battle: React.FC<BattleProps> = (props) => {
   const { setEnemyBlockAnim } = useEnemyBlockAnimationContext();
   const { setEnemyHurt } = useEnemyHurtAnimationContext();
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
-
+  const {setDeath} = useDeathAnimationContext();
+  const {setEnemyDeath} = useDeathAnimationContext();
   // const [isEnemyButtonDisabled, setIsEnemyButtonDisabled] = useState(false);
 
   useEffect(() => {
@@ -346,11 +347,20 @@ const EnemyDamageRoll = useMemo(() => {
 
   useEffect(() => {
     if (EnemyHP === 0) {
-      setShowItemTransfer(true);
-
-      setIsOpen(true);
+      setEnemyDeath(true)
+      setTimeout(()=>{
+        setShowItemTransfer(true);
+        setIsOpen(true)
+        setEnemyDeath(false);},4000)
+   
     }
   }, [EnemyHP]);
+
+  useEffect(() => {
+    if (HP === 0) {
+    setDeath(true)
+    }
+  }, [HP]);
 
   const [isOpen, setIsOpen] = useState(true);
   const { setInfo } = useContext<any>(BattleStateContext);

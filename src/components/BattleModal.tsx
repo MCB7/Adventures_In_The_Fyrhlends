@@ -2,6 +2,7 @@ import React, { useRef, useState} from "react";
 import { useStatsContext } from "../context/StatsContext";
 import {useThree,useFrame} from "@react-three/fiber";
 import { useEnemyStatsContext } from "../context/EnemyStatsContext";
+import { useBattleStateContext } from "../context/BattleStateContext";
 import { Html } from "@react-three/drei";
 
 //THIS HAS TO BE WITHIN THE THREEJS MAP LIKE THE 'VENTURE FORTH?"
@@ -19,6 +20,7 @@ const BattleModal: React.FC<any> = ({
 
   const { dexterity: playerDexterity } = useStatsContext();
   const { enemyDexterity: enemyDexterity } = useEnemyStatsContext();
+  const { setInfo } = useBattleStateContext();
 
   const { camera } = useThree();
   const groupRef: any = useRef();
@@ -28,7 +30,8 @@ const BattleModal: React.FC<any> = ({
   });
 
   const handleBattleClick = () => {
-    const info = true;
+    const info : any = true;
+    setInfo(info)
     onInfoSentUp(info);
     BattleModalToggleState(false);
   };

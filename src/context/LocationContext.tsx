@@ -6,12 +6,14 @@ interface LocationContextData {
     setLocationX: (LocationX: number) => void;
     LocationY: number;
     setLocationY: (LocationY: number) => void;
-
+  
 }
+
+//during character creation choosing background will determine starting location
 const LocationContext = createContext<LocationContextData>({
-    LocationX:0,
+    LocationX:87.5,
     setLocationX: () => {},
-    LocationY:0,
+    LocationY:12.5,
     setLocationY: () => {},
 
 });

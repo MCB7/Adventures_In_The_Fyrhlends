@@ -15,8 +15,9 @@ import { BlockAnimationProvider } from "./context/BlockAnimationContext";
 import { EnemyHitAnimationProvider } from "./context/EnemyHitAnimationContext";
 import { EnemyBlockAnimationProvider } from "./context/EnemyBlockAnimationContext";
 import { EnemyHurtAnimationProvider } from "./context/EnemyHurtContext";
+import { DeathAnimationProvider } from "./context/DeathContext";
 import { ToggleTravelProvider } from "./context/ToggleTravelContext";
-// import CreateCharacter from "./components/CreateCharacter";
+import CreateCharacter from "./components/CreateCharacter";
 // import Character from "./components/Character";
 // import Battle from "./components/Battle";
 // import ItemTransfer from "./components/ItemTransfer";
@@ -48,18 +49,20 @@ const Game: React.FC = () => {
                                     <EnemyHurtAnimationProvider>
                                       <IsAnimationProvider>
                                         <ToggleTravelProvider>
-                                      <BattleStage />
-                                      <Battle/> 
-                                      {/* <Map/> */}
+                                          <DeathAnimationProvider>
+                                      {/* <BattleStage />
+                                      <Battle/>  */}
+                                       <Map/> 
+                                      {/* <CreateCharacter/>  */}
                                    
                                       {/* <Battle />  */}
                                       
-                                      {/* <CreateCharacter/> 
+                                      {/* 
                              
                                       <Character/>
                                       <Inventory/>
                                       <ItemTransfer/>   */}
-
+                                          </DeathAnimationProvider>
                                         </ToggleTravelProvider>
                                       </IsAnimationProvider>
                                     </EnemyHurtAnimationProvider>
